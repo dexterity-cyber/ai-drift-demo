@@ -1,0 +1,26 @@
+name: AI-Drift-Demo-CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install deps
+      run: |
+        pip install -U langchain guardrails-ai rebuff textattack langchain-bench sentence-transformers
+    - name: Generate threat model
+      run: |
+        python scripts/generate_threat_model.py --diagram diagrams/baseline.drawio --prompt prompts/threat_model_prompt.md --output baseline.json
+    - name: Validate semantics
+      run: python scripts/validate_output.py baseline.json
+    - name: Adversarial fuzz
+      run: python scripts/fuzz_test.py --prompt prompts/threat_model_prompt.md --n 10
