@@ -47,7 +47,7 @@ def main():
     args = ap.parse_args()
 
     llm = LlamaCpp(
-        model_path="models/llama-3-8b-instruct.Q4_K_M.gguf",
+        model_path="models/Meta-Llama-3-8B-Instruct-Q4_K_M.gguf",
         temperature=0.2,
         n_ctx=4096,
     )
