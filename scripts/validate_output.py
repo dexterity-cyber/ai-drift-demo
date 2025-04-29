@@ -1,34 +1,12 @@
-"""Validate JSON output against glossary using Guardrails-AI."""
-import guardrails as gd, json, argparse, pathlib, sys
+import guardrails as gd
 
-GLOSSARY = ["PublicAPI", "Database", "AuthService", "InternalService"]
+SCHEMA_RAIL = "schema/guardrails.rail"
 
-SCHEMA_YAML = f"""
-type: object
-properties:
-  risks:
-    type: array
-    items:
-      properties:
-        asset:
-          enum: {GLOSSARY}
-        threat: {{type: string}}
-        severity: {{enum: ["LOW", "MEDIUM", "HIGH"]}}
-        mitigation: {{type: string}}
-"""
+with open("drift.json") as f:
+    raw_data = f.read()
 
-guard = gd.Guard.from_yaml(SCHEMA_YAML)
+guard = gd.Guard.from_rail(SCHEMA_RAIL)
+validated_output, *rest = guard.parse(raw_data)
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('file')
-    args = ap.parse_args()
-    data = json.loads(pathlib.Path(args.file).read_text())
-    guard.validate(data)
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f'Guardrails validation failed: {e}')
-        sys.exit(1)
+print("[+] Guardrails validation successful.")
+print(validated_output)

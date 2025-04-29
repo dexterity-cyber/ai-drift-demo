@@ -1,0 +1,15 @@
+<rail version="0.1">
+    <output>
+        <object name="threat_model">
+            <string name="summary" description="Short description of the threat model."/>
+            <list name="risks" description="Identified risks in the architecture.">
+                <object name="risk">
+                    <string name="asset" description="Asset name"/>
+                    <string name="threat" description="Threat to the asset"/>
+                    <string name="severity" description="LOW, MEDIUM, or HIGH severity level"/>
+                    <string name="mitigation" description="Mitigation step for the threat"/>
+                </object>
+            </list>
+        </object>
+    </output>
+</rail>

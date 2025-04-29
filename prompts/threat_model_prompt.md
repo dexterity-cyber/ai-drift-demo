@@ -1,9 +1,22 @@
-You are an expert threat modeler. Given the architecture diagram (in text) below,
-output a JSON document with fields:
-summary: short paragraph
-risks: list of objects {asset, threat, severity, mitigation}
 
-Only produce JSON.
+# RULES:
+# Only output pure JSON. No explanations. No extra text. No comments.
+# JSON must be syntactically correct.
+# Respond ONLY inside {{ ... }} object.
 
-Diagram:
-{{diagram_text}}
+Your output must match this format exactly:
+
+{{
+  "summary": "short description",
+  "risks": [
+    {{
+      "asset": "asset name",
+      "threat": "threat description",
+      "severity": "LOW | MEDIUM | HIGH",
+      "mitigation": "mitigation description"
+    }}
+  ]
+}}
+
+Architecture Input:
+{diagram_text}

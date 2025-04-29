@@ -1,18 +1,43 @@
-"""Generate threat model JSON from diagram using local Llama.cpp model."""
-import argparse, json, pathlib, re
+
+"""Generate threat model JSON from diagram using local Llama.cpp model.""" 
+import argparse
+import json
+import xml.etree.ElementTree as ET
 from langchain.llms import LlamaCpp
 from langchain.prompts import PromptTemplate
 
 def extract(diagram_path: str) -> str:
-    """Naïve extractor that returns raw XML for demo purposes."""
-    return pathlib.Path(diagram_path).read_text()[:4000]
+    """Extract node labels (assets) from a .drawio XML file."""
+    tree = ET.parse(diagram_path)
+    root = tree.getroot()
+
+    assets = []
+    for cell in root.iter('mxCell'):
+        value = cell.attrib.get('value')
+        vertex = cell.attrib.get('vertex')
+        if value and vertex == "1":
+            assets.append(value.strip())
+
+    if not assets:
+        return "No assets found."
+
+    return "The system consists of: " + ", ".join(assets) + "."
 
 def parse_structured(text: str):
-    """Extract first JSON object found in LLM output."""
-    m = re.search(r'{.*}', text, flags=re.S)
+    """Extract and safely parse first JSON object from LLM output."""
+    import re
+    m = re.search(r'({.*})', text, flags=re.S)
     if not m:
         raise ValueError("No JSON detected")
-    return json.loads(m.group(0))
+
+    raw_json = m.group(1)
+    raw_json = raw_json.replace('\n', '').replace('\t', '').replace(',}', '}').replace(',]', ']')
+
+    try:
+        return json.loads(raw_json)
+    except Exception as e:
+        print(f"[Fatal] JSON parsing failed: {e}")
+        raise ValueError("Could not auto-repair JSON output.")
 
 def main():
     ap = argparse.ArgumentParser()
@@ -22,19 +47,28 @@ def main():
     args = ap.parse_args()
 
     llm = LlamaCpp(
-        model_path=str(pathlib.Path('models/llama-3-8b-instruct.Q4_K_M.gguf')),
+        model_path="models/llama-3-8b-instruct.Q4_K_M.gguf",
         temperature=0.2,
         n_ctx=4096,
-        verbose=False
     )
 
-    template = pathlib.Path(args.prompt).read_text()
+    template = open(args.prompt).read()
     prompt = PromptTemplate.from_template(template).format(diagram_text=extract(args.diagram))
-    response = llm(prompt)
-    data = parse_structured(response)
 
-    pathlib.Path(args.output).write_text(json.dumps(data, indent=2))
-    print(f'Wrote {args.output}')
+    for attempt in range(2):
+        response = llm(prompt)
+        try:
+            data = parse_structured(response)
+            break
+        except Exception:
+            print(f"[Retry] Attempt {attempt+1} failed.")
+            continue
+    else:
+        raise ValueError("Failed to parse structured output after retries.")
+
+    with open(args.output, 'w') as f:
+        json.dump(data, f, indent=2)
+    print(f'[+] Threat model generated: {args.output}')
 
 if __name__ == '__main__':
     main()

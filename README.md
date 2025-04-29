@@ -7,7 +7,6 @@ Reproduce the Semantic Drift exploit and guard-rail defenses with **free, open�
 * Make / Bash
 * ≥16 GB RAM
 * `cmake`, `jq` (for diff visual), `graphviz` (optional)
-* [llama.cpp](https://github.com/ggerganov/llama.cpp) built locally
 * Llama 3 8B *gguf* weights (download separately, ≈4 GB) → place in `models/`
 
 ## Quick Start
