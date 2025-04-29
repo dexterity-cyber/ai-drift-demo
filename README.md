@@ -29,6 +29,3 @@ make guardrails     # run validation + fuzz (should fail on drift)
 | `drift`     | run on tampered diagram and diff outputs |
 | `guardrails`| run validation + fuzz tests |
 
-## License
-
-MIT for demo code.  Model weights subject to their own license.
